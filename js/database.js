@@ -98,4 +98,13 @@ class GastosDB {
                 await storageRef.delete();
             }
 
-            await
+            await this.gastosRef.doc(id).delete();
+            console.log('Gasto eliminado correctamente');
+            return true;
+
+        } catch (error) {
+            console.error('Error al eliminar gasto:', error);
+            throw new Error('Error al eliminar el gasto');
+        }
+    }
+}
