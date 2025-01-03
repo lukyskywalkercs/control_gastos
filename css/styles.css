@@ -2,6 +2,7 @@
     --primary-color: #6C63FF;
     --secondary-color: #4CAF50;
     --error-color: #ff6b6b;
+    --warning-color: #ffd93d;
     --background-color: #f8f9fa;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -31,6 +32,61 @@ h1 {
     margin-bottom: 2rem;
 }
 
+/* Filtros */
+.filtros-control {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+}
+
+.filtros-control h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.filtros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    align-items: end;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filtro-fechas {
+    display: flex;
+    gap: 1rem;
+}
+
+.filtro-fechas input {
+    flex: 1;
+}
+
+.btn-filtrar {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.btn-filtrar:hover {
+    background: #5750ff;
+}
+
+/* Paneles de usuario */
 .user-panels {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -50,6 +106,7 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
+/* Formularios */
 .gasto-form {
     display: flex;
     flex-direction: column;
@@ -68,6 +125,10 @@ h1 {
     color: #555;
 }
 
+.form-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
 .form-group input,
 .form-group select {
     padding: 0.8rem;
@@ -82,26 +143,7 @@ h1 {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
 }
-
-.btn-agregar {
-    background-color: var(--secondary-color);
-    color: white;
-    border: none;
-    padding: 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: background-color 0.3s;
-}
-
-.btn-agregar:hover {
-    background-color: #3d8b40;
-}
-
+/* Lista de gastos */
 .lista-gastos {
     margin-top: 2rem;
 }
@@ -126,6 +168,15 @@ h1 {
     grid-template-columns: 1fr auto auto;
     align-items: center;
     gap: 1rem;
+    transition: transform 0.2s;
+}
+
+.gasto-item:hover {
+    transform: translateX(5px);
+}
+
+.gasto-item.recurrente {
+    border-left: 3px solid var(--primary-color);
 }
 
 .gasto-fecha {
@@ -147,29 +198,38 @@ h1 {
     font-weight: 600;
 }
 
-.btn-eliminar-gasto {
-    background: none;
-    border: none;
-    color: var(--error-color);
-    cursor: pointer;
-    padding: 4px;
+/* Gráficos */
+.graficos-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin: 2rem 0;
 }
 
-.total-usuario {
-    padding-top: 1rem;
-    border-top: 2px solid #eee;
-    font-size: 1.1rem;
+.grafico-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
 }
 
+.grafico-grande {
+    grid-column: 1 / -1;
+}
+
+/* Botones de control */
 .botones-control {
     display: flex;
     justify-content: center;
     gap: 1rem;
     margin: 2rem 0;
+    flex-wrap: wrap;
 }
 
 .btn-informe,
-.btn-reiniciar {
+.btn-reiniciar,
+.btn-exportar,
+.btn-configurar {
     padding: 1rem 2rem;
     border: none;
     border-radius: 8px;
@@ -178,27 +238,20 @@ h1 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
 }
 
-.btn-informe {
-    background-color: var(--primary-color);
-    color: white;
-}
+.btn-informe { background-color: var(--primary-color); color: white; }
+.btn-reiniciar { background-color: var(--error-color); color: white; }
+.btn-exportar { background-color: var(--secondary-color); color: white; }
+.btn-configurar { background-color: #6c757d; color: white; }
 
-.btn-reiniciar {
-    background-color: var(--error-color);
-    color: white;
-}
+.btn-informe:hover { background-color: #5750ff; }
+.btn-reiniciar:hover { background-color: #ff5252; }
+.btn-exportar:hover { background-color: #3d8b40; }
+.btn-configurar:hover { background-color: #5a6268; }
 
-.btn-informe:hover {
-    background-color: #5750ff;
-}
-
-.btn-reiniciar:hover {
-    background-color: #ff5252;
-}
-
+/* Mensajes y Modal */
 .resultado {
     position: fixed;
     bottom: 20px;
@@ -209,6 +262,7 @@ h1 {
     box-shadow: var(--card-shadow);
     transform: translateY(150%);
     transition: transform 0.3s;
+    z-index: 1000;
 }
 
 .resultado.mostrar {
@@ -229,96 +283,14 @@ h1 {
     gap: 0.5rem;
 }
 
-/* Estilos para el modal del informe */
-.modal-informe {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    max-width: 800px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-content h2 {
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
-.informe-grid {
-    display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.informe-seccion table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-
-.informe-seccion th,
-.informe-seccion td {
-    padding: 0.8rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.informe-seccion th {
-    background: #f8f9fa;
-    color: var(--primary-color);
-}
-
-.informe-totales {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-}
-
-.informe-totales p {
-    margin: 0.5rem 0;
-}
-
-.total-final {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid #eee;
-    font-size: 1.2rem;
-}
-
-.btn-cerrar {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    display: block;
-    margin: 0 auto;
-}
-
-.btn-cerrar:hover {
-    background: #5750ff;
-}
-
 /* Media Queries */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
+    }
+
+    .filtros-grid {
+        grid-template-columns: 1fr;
     }
 
     .user-panel {
@@ -334,34 +306,12 @@ h1 {
         gap: 0.5rem;
     }
 
-    .gasto-fecha {
-        grid-area: fecha;
-    }
-
-    .gasto-info {
-        grid-area: info;
-    }
-
-    .gasto-monto {
-        grid-area: monto;
-    }
-
-    .btn-eliminar-gasto {
-        grid-area: eliminar;
+    .graficos-container {
+        grid-template-columns: 1fr;
     }
 
     .botones-control {
         flex-direction: column;
         padding: 0 1rem;
-    }
-
-    .modal-content {
-        padding: 1rem;
-    }
-    
-    .informe-seccion td,
-    .informe-seccion th {
-        padding: 0.5rem;
-        font-size: 0.9rem;
     }
 }
