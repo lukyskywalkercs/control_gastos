@@ -15,12 +15,6 @@ class GastosDB {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            if (datos.ticket) {
-                console.log('Subiendo ticket...');
-                const ticketUrl = await this.subirImagen(datos.ticket);
-                gasto.ticketUrl = ticketUrl;
-            }
-
             console.log('Guardando gasto en Firestore:', gasto);
             const docRef = await this.gastosRef.add(gasto);
             
@@ -33,36 +27,10 @@ class GastosDB {
         }
     }
 
-    async subirImagen(file) {
-        try {
-            if (!file) return null;
-
-            const timestamp = Date.now();
-            const fileName = `${timestamp}_${file.name}`;
-            const storageRef = storage.ref();
-            const fileRef = storageRef.child(`tickets/${fileName}`);
-
-            console.log('Iniciando subida de archivo:', fileName);
-            
-            const snapshot = await fileRef.put(file);
-            console.log('Archivo subido correctamente');
-
-            const downloadURL = await snapshot.ref.getDownloadURL();
-            console.log('URL de descarga obtenida:', downloadURL);
-
-            return downloadURL;
-
-        } catch (error) {
-            console.error('Error al subir imagen:', error);
-            throw new Error('Error al subir el ticket');
-        }
-    }
-
     async obtenerGastos(usuario) {
         try {
             console.log('Obteniendo gastos para:', usuario);
             
-            // Consulta sin ordenar por fecha
             const snapshot = await this.gastosRef
                 .where('usuario', '==', usuario)
                 .get();
@@ -72,7 +40,6 @@ class GastosDB {
                 ...doc.data()
             }));
 
-            // Ordenar los resultados en el cliente
             gastos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
             console.log('Gastos obtenidos:', gastos.length);
@@ -87,19 +54,6 @@ class GastosDB {
     async eliminarGasto(id) {
         try {
             console.log('Eliminando gasto:', id);
-
-            const doc = await this.gastosRef.doc(id).get();
-            if (!doc.exists) {
-                throw new Error('El gasto no existe');
-            }
-
-            const data = doc.data();
-            
-            if (data.ticketUrl) {
-                console.log('Eliminando ticket asociado');
-                const storageRef = storage.refFromURL(data.ticketUrl);
-                await storageRef.delete();
-            }
 
             await this.gastosRef.doc(id).delete();
             console.log('Gasto eliminado correctamente');
