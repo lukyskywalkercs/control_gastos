@@ -62,15 +62,18 @@ class GastosDB {
         try {
             console.log('Obteniendo gastos para:', usuario);
             
+            // Consulta sin ordenar por fecha
             const snapshot = await this.gastosRef
                 .where('usuario', '==', usuario)
-                .orderBy('fecha', 'desc')
                 .get();
 
             const gastos = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
+
+            // Ordenar los resultados en el cliente
+            gastos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
             console.log('Gastos obtenidos:', gastos.length);
             return gastos;
