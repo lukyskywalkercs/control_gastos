@@ -68,24 +68,6 @@ h1 {
     flex: 1;
 }
 
-.btn-filtrar {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: center;
-    transition: background-color 0.3s;
-}
-
-.btn-filtrar:hover {
-    background: #5750ff;
-}
-
 /* Paneles de usuario */
 .user-panels {
     display: grid;
@@ -143,6 +125,44 @@ h1 {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
 }
+
+/* Botones */
+.btn-agregar,
+.btn-filtrar,
+.btn-informe,
+.btn-reiniciar,
+.btn-exportar,
+.btn-configurar {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.btn-agregar {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-agregar:hover {
+    background-color: #3d8b40;
+}
+
+.btn-filtrar {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-filtrar:hover {
+    background: #5750ff;
+}
+
 /* Lista de gastos */
 .lista-gastos {
     margin-top: 2rem;
@@ -198,6 +218,19 @@ h1 {
     font-weight: 600;
 }
 
+.btn-eliminar-gasto {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: transform 0.2s;
+}
+
+.btn-eliminar-gasto:hover {
+    transform: scale(1.1);
+}
+
 /* Gráficos */
 .graficos-container {
     display: grid;
@@ -226,21 +259,6 @@ h1 {
     flex-wrap: wrap;
 }
 
-.btn-informe,
-.btn-reiniciar,
-.btn-exportar,
-.btn-configurar {
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s;
-}
-
 .btn-informe { background-color: var(--primary-color); color: white; }
 .btn-reiniciar { background-color: var(--error-color); color: white; }
 .btn-exportar { background-color: var(--secondary-color); color: white; }
@@ -251,7 +269,78 @@ h1 {
 .btn-exportar:hover { background-color: #3d8b40; }
 .btn-configurar:hover { background-color: #5a6268; }
 
-/* Mensajes y Modal */
+/* Modal */
+.modal-informe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.informe-grid {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.informe-seccion table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.informe-seccion th,
+.informe-seccion td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.informe-seccion th {
+    background: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.informe-totales {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.informe-totales p {
+    margin: 0.5rem 0;
+}
+
+.total-final {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #eee;
+    font-size: 1.2rem;
+}
+
+/* Mensajes */
 .resultado {
     position: fixed;
     bottom: 20px;
@@ -313,5 +402,16 @@ h1 {
     .botones-control {
         flex-direction: column;
         padding: 0 1rem;
+    }
+
+    .modal-content {
+        padding: 1rem;
+        width: 95%;
+    }
+    
+    .informe-seccion td,
+    .informe-seccion th {
+        padding: 0.5rem;
+        font-size: 0.9rem;
     }
 }
