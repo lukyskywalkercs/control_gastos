@@ -89,11 +89,6 @@ function actualizarListaGastos(usuario, gastos) {
     const contenedor = document.querySelector(`#lista-gastos-${usuario.toLowerCase()} .gastos-scroll`);
     const totalElement = document.querySelector(`#lista-gastos-${usuario.toLowerCase()} .total-usuario strong`);
     
-    if (!contenedor || !totalElement) {
-        console.error('No se encontraron los elementos del DOM necesarios');
-        return;
-    }
-
     let html = '';
     let total = 0;
 
@@ -118,6 +113,10 @@ function actualizarListaGastos(usuario, gastos) {
 }
 
 async function eliminarGasto(id, usuario) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
+        return;
+    }
+
     try {
         await gastosDB.eliminarGasto(id);
         const gastosActualizados = await gastosDB.obtenerGastos(usuario);
@@ -143,13 +142,16 @@ async function aplicarFiltros() {
         
         actualizarListaGastos('Lucas', gastosLucas);
         actualizarListaGastos('Patri', gastosPatri);
-        actualizarGraficos(filtros);
+        actualizarGraficos();
     } catch (error) {
         mostrarError('Error al aplicar filtros');
     }
 }
 
-function actualizarGraficos(filtros = {}) {
+function actualizarGraficos() {
+    const gastosLucas = obtenerDatosGraficos('Lucas');
+    const gastosPatri = obtenerDatosGraficos('Patri');
+
     const ctx1 = document.getElementById('graficoCategoriasLucas').getContext('2d');
     const ctx2 = document.getElementById('graficoCategoriasPatri').getContext('2d');
     const ctx3 = document.getElementById('graficoComparativo').getContext('2d');
@@ -158,18 +160,41 @@ function actualizarGraficos(filtros = {}) {
     Object.values(graficos).forEach(grafico => grafico?.destroy());
 
     // Crear nuevos gráficos
-    graficos.lucas = new Chart(ctx1, configurarGraficoTorta('Lucas'));
-    graficos.patri = new Chart(ctx2, configurarGraficoTorta('Patri'));
-    graficos.comparativo = new Chart(ctx3, configurarGraficoBarras());
+    graficos.lucas = new Chart(ctx1, configurarGraficoTorta('Lucas', gastosLucas));
+    graficos.patri = new Chart(ctx2, configurarGraficoTorta('Patri', gastosPatri));
+    graficos.comparativo = new Chart(ctx3, configurarGraficoBarras(gastosLucas, gastosPatri));
 }
 
-function configurarGraficoTorta(usuario) {
+function obtenerDatosGraficos(usuario) {
+    const contenedor = document.querySelector(`#lista-gastos-${usuario.toLowerCase()} .gastos-scroll`);
+    const gastos = Array.from(contenedor.querySelectorAll('.gasto-item')).map(item => ({
+        categoria: item.querySelector('.gasto-categoria').textContent,
+        monto: parseFloat(item.querySelector('.gasto-monto').textContent.replace('€', '').replace('.', '').replace(',', '.'))
+    }));
+
+    const categorias = ['Supermercado', 'Restaurantes', 'Transporte', 'Ocio', 'Hogar', 'Otros'];
+    const totalesPorCategoria = {};
+    
+    categorias.forEach(cat => {
+        totalesPorCategoria[cat] = gastos
+            .filter(g => g.categoria === cat)
+            .reduce((sum, g) => sum + g.monto, 0);
+    });
+
+    return totalesPorCategoria;
+}
+
+function configurarGraficoTorta(usuario, datos) {
+    const categorias = Object.keys(datos);
+    const valores = Object.values(datos);
+    const hayDatos = valores.some(v => v > 0);
+
     return {
         type: 'pie',
         data: {
-            labels: ['Supermercado', 'Restaurantes', 'Transporte', 'Ocio', 'Hogar', 'Otros'],
+            labels: categorias,
             datasets: [{
-                data: [300, 200, 150, 100, 400, 250],
+                data: hayDatos ? valores : [],
                 backgroundColor: [
                     '#FF6384',
                     '#36A2EB',
@@ -185,27 +210,38 @@ function configurarGraficoTorta(usuario) {
             plugins: {
                 title: {
                     display: true,
-                    text: `Gastos por Categoría - ${usuario}`
+                    text: `Gastos por Categoría - ${usuario}`,
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'bottom'
                 }
             }
         }
     };
 }
 
-function configurarGraficoBarras() {
+function configurarGraficoBarras(datosLucas, datosPatri) {
+    const categorias = Object.keys(datosLucas);
+    const valoresLucas = Object.values(datosLucas);
+    const valoresPatri = Object.values(datosPatri);
+    const hayDatos = [...valoresLucas, ...valoresPatri].some(v => v > 0);
+
     return {
         type: 'bar',
         data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            labels: categorias,
             datasets: [
                 {
                     label: 'Lucas',
-                    data: [650, 590, 800, 810, 560, 550],
+                    data: hayDatos ? valoresLucas : [],
                     backgroundColor: '#36A2EB'
                 },
                 {
                     label: 'Patri',
-                    data: [460, 580, 650, 400, 600, 450],
+                    data: hayDatos ? valoresPatri : [],
                     backgroundColor: '#FF6384'
                 }
             ]
@@ -215,11 +251,99 @@ function configurarGraficoBarras() {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Comparativa Mensual'
+                    text: 'Comparativa por Categorías',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => formatearDinero(value)
+                    }
                 }
             }
         }
     };
+}
+
+async function mostrarInforme() {
+    try {
+        const gastosLucas = await gastosDB.obtenerGastos('Lucas');
+        const gastosPatri = await gastosDB.obtenerGastos('Patri');
+        
+        const categorias = ['Supermercado', 'Restaurantes', 'Transporte', 'Ocio', 'Hogar', 'Otros'];
+        const totalesPorCategoria = {
+            Lucas: {},
+            Patri: {}
+        };
+
+        categorias.forEach(cat => {
+            totalesPorCategoria.Lucas[cat] = gastosLucas
+                .filter(g => g.categoria === cat)
+                .reduce((sum, g) => sum + parseFloat(g.monto), 0);
+            
+            totalesPorCategoria.Patri[cat] = gastosPatri
+                .filter(g => g.categoria === cat)
+                .reduce((sum, g) => sum + parseFloat(g.monto), 0);
+        });
+
+        const totalLucas = Object.values(totalesPorCategoria.Lucas).reduce((a, b) => a + b, 0);
+        const totalPatri = Object.values(totalesPorCategoria.Patri).reduce((a, b) => a + b, 0);
+
+        const modal = document.createElement('div');
+        modal.className = 'modal-informe';
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <button class="btn-cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2>Informe Detallado de Gastos</h2>
+                <div class="informe-grid">
+                    <div class="informe-seccion">
+                        <h3>Gastos por Categoría</h3>
+                        <table>
+                            <tr>
+                                <th>Categoría</th>
+                                <th>Lucas</th>
+                                <th>Patri</th>
+                                <th>Total</th>
+                            </tr>
+                            ${categorias.map(cat => `
+                                <tr>
+                                    <td>${cat}</td>
+                                    <td>${formatearDinero(totalesPorCategoria.Lucas[cat])}</td>
+                                    <td>${formatearDinero(totalesPorCategoria.Patri[cat])}</td>
+                                    <td>${formatearDinero(totalesPorCategoria.Lucas[cat] + totalesPorCategoria.Patri[cat])}</td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td><strong>Total</strong></td>
+                                <td><strong>${formatearDinero(totalLucas)}</strong></td>
+                                <td><strong>${formatearDinero(totalPatri)}</strong></td>
+                                <td><strong>${formatearDinero(totalLucas + totalPatri)}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        
+        modal.querySelector('.btn-cerrar').onclick = () => {
+            modal.remove();
+        };
+
+    } catch (error) {
+        mostrarError('Error al generar el informe');
+    }
 }
 
 async function exportarExcel() {
@@ -229,16 +353,17 @@ async function exportarExcel() {
 
         const wb = XLSX.utils.book_new();
         
-        // Hoja de Lucas
-        const wsLucas = XLSX.utils.json_to_sheet(gastosLucas.map(formatearGastoParaExcel));
+        const wsLucas = XLSX.utils.json_to_sheet(
+            gastosLucas.map(formatearGastoParaExcel)
+        );
         XLSX.utils.book_append_sheet(wb, wsLucas, "Gastos Lucas");
         
-        // Hoja de Patri
-        const wsPatri = XLSX.utils.json_to_sheet(gastosPatri.map(formatearGastoParaExcel));
+        const wsPatri = XLSX.utils.json_to_sheet(
+            gastosPatri.map(formatearGastoParaExcel)
+        );
         XLSX.utils.book_append_sheet(wb, wsPatri, "Gastos Patri");
         
-        // Guardar archivo
-        XLSX.writeFile(wb, "Gastos_Lucas_y_Patri.xlsx");
+        XLSX.writeFile(wb, `Gastos_${formatearFecha(new Date())}.xlsx`);
         
         mostrarMensajeExito('Archivo Excel generado correctamente');
     } catch (error) {
@@ -302,79 +427,6 @@ function mostrarMensajeExito(mensaje) {
     }, 3000);
 }
 
-async function mostrarInforme() {
-    try {
-        const gastosLucas = await gastosDB.obtenerGastos('Lucas');
-        const gastosPatri = await gastosDB.obtenerGastos('Patri');
-        
-        // Calcular totales por categoría
-        const categorias = ['Supermercado', 'Restaurantes', 'Transporte', 'Ocio', 'Hogar', 'Otros'];
-        const totalesPorCategoria = {
-            Lucas: {},
-            Patri: {}
-        };
-
-        // Inicializar totales
-        categorias.forEach(cat => {
-            totalesPorCategoria.Lucas[cat] = 0;
-            totalesPorCategoria.Patri[cat] = 0;
-        });
-
-        // Calcular totales
-        gastosLucas.forEach(gasto => {
-            totalesPorCategoria.Lucas[gasto.categoria] += parseFloat(gasto.monto);
-        });
-        gastosPatri.forEach(gasto => {
-            totalesPorCategoria.Patri[gasto.categoria] += parseFloat(gasto.monto);
-        });
-
-        const totalLucas = gastosLucas.reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
-        const totalPatri = gastosPatri.reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
-
-        // Crear ventana modal
-        const modal = document.createElement('div');
-        modal.className = 'modal-informe';
-        
-        let html = `
-            <div class="modal-content">
-                <h2>Informe Detallado de Gastos</h2>
-                <div class="informe-grid">
-                    <div class="informe-seccion">
-                        <h3>Gastos por Categoría</h3>
-                        <table>
-                            <tr>
-                                <th>Categoría</th>
-                                <th>Lucas</th>
-                                <th>Patri</th>
-                            </tr>
-                            ${categorias.map(cat => `
-                                <tr>
-                                    <td>${cat}</td>
-                                    <td>${formatearDinero(totalesPorCategoria.Lucas[cat])}</td>
-                                    <td>${formatearDinero(totalesPorCategoria.Patri[cat])}</td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-                    <div class="informe-totales">
-                        <h3>Totales</h3>
-                        <p>Lucas: <strong>${formatearDinero(totalLucas)}</strong></p>
-                        <p>Patri: <strong>${formatearDinero(totalPatri)}</strong></p>
-                        <p class="total-final">Total: <strong>${formatearDinero(totalLucas + totalPatri)}</strong></p>
-                    </div>
-                </div>
-                <button class="btn-cerrar" onclick="this.parentElement.parentElement.remove()">Cerrar</button>
-            </div>
-        `;
-        
-        modal.innerHTML = html;
-        document.body.appendChild(modal);
-
-    } catch (error) {
-        mostrarError('Error al generar el informe');
-    }
-}
-
 async function reiniciarGastos() {
     if (!confirm('¿Estás seguro de que quieres eliminar todos los gastos?')) {
         return;
@@ -384,7 +436,6 @@ async function reiniciarGastos() {
         const gastosLucas = await gastosDB.obtenerGastos('Lucas');
         const gastosPatri = await gastosDB.obtenerGastos('Patri');
         
-        // Eliminar todos los gastos
         for (const gasto of gastosLucas) {
             await gastosDB.eliminarGasto(gasto.id);
         }
@@ -392,7 +443,6 @@ async function reiniciarGastos() {
             await gastosDB.eliminarGasto(gasto.id);
         }
         
-        // Actualizar las listas
         actualizarListaGastos('Lucas', []);
         actualizarListaGastos('Patri', []);
         actualizarGraficos();
