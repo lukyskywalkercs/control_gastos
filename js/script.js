@@ -6,16 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function inicializarApp() {
-    gastosDB = new GastosDB();
-    console.log('App inicializada');
-    
-    // Establecer fecha actual
-    const hoy = new Date().toISOString().split('T')[0];
-    document.getElementById('fecha1').value = hoy;
-    document.getElementById('fecha2').value = hoy;
+    try {
+        gastosDB = new GastosDB();
+        console.log('App inicializada');
+        
+        // Establecer fecha actual
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha1').value = hoy;
+        document.getElementById('fecha2').value = hoy;
 
-    // Cargar gastos existentes
-    cargarGastosIniciales();
+        // Cargar gastos existentes
+        await cargarGastosIniciales();
+    } catch (error) {
+        console.error('Error al inicializar:', error);
+        mostrarError('Error al inicializar la aplicación');
+    }
 }
 
 async function cargarGastosIniciales() {
@@ -38,7 +43,7 @@ async function agregarGasto(usuario) {
     const datos = {
         fecha: document.getElementById(`fecha${index}`).value,
         categoria: document.getElementById(`categoria${index}`).value,
-        monto: parseFloat(document.getElementById(`gasto${index}`).value),
+        monto: document.getElementById(`gasto${index}`).value,
         ticket: document.getElementById(`ticket${index}`).files[0] || null
     };
 
@@ -48,8 +53,7 @@ async function agregarGasto(usuario) {
     }
 
     try {
-        const nuevoGasto = await gastosDB.agregarGasto(usuario, datos);
-        console.log('Gasto agregado:', nuevoGasto);
+        await gastosDB.agregarGasto(usuario, datos);
         
         // Recargar los gastos
         const gastosActualizados = await gastosDB.obtenerGastos(usuario);
@@ -83,7 +87,7 @@ function actualizarListaGastos(usuario, gastos) {
     let total = 0;
 
     gastos.forEach(gasto => {
-        total += gasto.monto;
+        total += parseFloat(gasto.monto);
         html += `
             <div class="gasto-item">
                 <div class="gasto-fecha">${formatearFecha(gasto.fecha)}</div>
@@ -173,25 +177,76 @@ function inicializarManejadorImagenes() {
         const inputTicket = document.getElementById(`ticket${index}`);
         const previewDiv = document.getElementById(`preview${index}`);
 
-        inputTicket.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewDiv.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview">
-                        <button class="remove-image" onclick="removeImage('${index}')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
+        if (inputTicket && previewDiv) {
+            inputTicket.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewDiv.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview">
+                            <button class="remove-image" onclick="removeImage('${index}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                    }
+                    reader.readAsDataURL(file);
                 }
-                reader.readAsDataURL(file);
-            }
-        });
+            });
+        }
     });
 }
 
 function removeImage(index) {
     document.getElementById(`ticket${index}`).value = '';
     document.getElementById(`preview${index}`).innerHTML = '';
+}
+
+// Funciones para los botones de informe y reinicio
+async function mostrarInforme() {
+    try {
+        const gastosLucas = await gastosDB.obtenerGastos('Lucas');
+        const gastosPatri = await gastosDB.obtenerGastos('Patri');
+        
+        const totalLucas = gastosLucas.reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
+        const totalPatri = gastosPatri.reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
+        
+        const mensaje = `
+            Informe de Gastos:
+            Lucas: ${formatearDinero(totalLucas)}
+            Patri: ${formatearDinero(totalPatri)}
+            Total: ${formatearDinero(totalLucas + totalPatri)}
+        `;
+        
+        alert(mensaje);
+    } catch (error) {
+        mostrarError('Error al generar el informe');
+    }
+}
+
+async function reiniciarGastos() {
+    if (!confirm('¿Estás seguro de que quieres eliminar todos los gastos?')) {
+        return;
+    }
+
+    try {
+        const gastosLucas = await gastosDB.obtenerGastos('Lucas');
+        const gastosPatri = await gastosDB.obtenerGastos('Patri');
+        
+        // Eliminar todos los gastos
+        for (const gasto of gastosLucas) {
+            await gastosDB.eliminarGasto(gasto.id);
+        }
+        for (const gasto of gastosPatri) {
+            await gastosDB.eliminarGasto(gasto.id);
+        }
+        
+        // Actualizar las listas
+        actualizarListaGastos('Lucas', []);
+        actualizarListaGastos('Patri', []);
+        
+        mostrarMensajeExito('Todos los gastos han sido eliminados');
+    } catch (error) {
+        mostrarError('Error al reiniciar los gastos');
+    }
 }
