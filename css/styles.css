@@ -83,33 +83,6 @@ h1 {
     box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
 }
 
-.preview {
-    margin-top: 0.5rem;
-    position: relative;
-}
-
-.preview img {
-    max-width: 100px;
-    max-height: 100px;
-    border-radius: 4px;
-}
-
-.remove-image {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: var(--error-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .btn-agregar {
     background-color: var(--secondary-color);
     color: white;
@@ -174,11 +147,6 @@ h1 {
     font-weight: 600;
 }
 
-.ver-ticket {
-    color: var(--primary-color);
-    text-decoration: none;
-}
-
 .btn-eliminar-gasto {
     background: none;
     border: none;
@@ -193,7 +161,6 @@ h1 {
     font-size: 1.1rem;
 }
 
-/* Nuevos estilos para los botones de control */
 .botones-control {
     display: flex;
     justify-content: center;
@@ -262,6 +229,92 @@ h1 {
     gap: 0.5rem;
 }
 
+/* Estilos para el modal del informe */
+.modal-informe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.informe-grid {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.informe-seccion table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.informe-seccion th,
+.informe-seccion td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.informe-seccion th {
+    background: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.informe-totales {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.informe-totales p {
+    margin: 0.5rem 0;
+}
+
+.total-final {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #eee;
+    font-size: 1.2rem;
+}
+
+.btn-cerrar {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+}
+
+.btn-cerrar:hover {
+    background: #5750ff;
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
     .container {
@@ -300,5 +353,15 @@ h1 {
     .botones-control {
         flex-direction: column;
         padding: 0 1rem;
+    }
+
+    .modal-content {
+        padding: 1rem;
+    }
+    
+    .informe-seccion td,
+    .informe-seccion th {
+        padding: 0.5rem;
+        font-size: 0.9rem;
     }
 }
