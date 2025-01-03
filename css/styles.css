@@ -68,6 +68,39 @@ h1 {
     flex: 1;
 }
 
+/* Inputs y Selects mejorados */
+.form-group input,
+.form-group select,
+.filtro-grupo input,
+.filtro-grupo select {
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: white;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.filtro-grupo input:focus,
+.filtro-grupo select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
 /* Paneles de usuario */
 .user-panels {
     display: grid;
@@ -111,28 +144,12 @@ h1 {
     margin-right: 0.5rem;
 }
 
-.form-group input,
-.form-group select {
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
-}
-
 /* Botones */
 .btn-agregar,
 .btn-filtrar,
 .btn-informe,
 .btn-reiniciar,
-.btn-exportar,
-.btn-configurar {
+.btn-exportar {
     padding: 0.8rem 1.5rem;
     border: none;
     border-radius: 8px;
@@ -142,7 +159,7 @@ h1 {
     align-items: center;
     gap: 0.5rem;
     justify-content: center;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
 .btn-agregar {
@@ -152,6 +169,7 @@ h1 {
 
 .btn-agregar:hover {
     background-color: #3d8b40;
+    transform: translateY(-1px);
 }
 
 .btn-filtrar {
@@ -161,6 +179,7 @@ h1 {
 
 .btn-filtrar:hover {
     background: #5750ff;
+    transform: translateY(-1px);
 }
 
 /* Lista de gastos */
@@ -262,14 +281,19 @@ h1 {
 .btn-informe { background-color: var(--primary-color); color: white; }
 .btn-reiniciar { background-color: var(--error-color); color: white; }
 .btn-exportar { background-color: var(--secondary-color); color: white; }
-.btn-configurar { background-color: #6c757d; color: white; }
+
+.btn-informe:hover,
+.btn-reiniciar:hover,
+.btn-exportar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 
 .btn-informe:hover { background-color: #5750ff; }
 .btn-reiniciar:hover { background-color: #ff5252; }
 .btn-exportar:hover { background-color: #3d8b40; }
-.btn-configurar:hover { background-color: #5a6268; }
 
-/* Modal */
+/* Modal mejorado */
 .modal-informe {
     position: fixed;
     top: 0;
@@ -281,63 +305,84 @@ h1 {
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
 }
 
 .modal-content {
     background: white;
-    padding: 2rem;
-    border-radius: 15px;
+    padding: 2.5rem;
+    border-radius: 20px;
     max-width: 800px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
+    position: relative;
+    transform: translateY(20px);
+    animation: slideIn 0.3s ease forwards;
 }
 
-.modal-content h2 {
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-    text-align: center;
+@keyframes slideIn {
+    to { transform: translateY(0); }
 }
 
-.informe-grid {
-    display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
+.btn-cerrar {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
 }
 
+.btn-cerrar:hover {
+    background: #f0f0f0;
+    color: var(--error-color);
+    transform: rotate(90deg);
+}
+
+/* Tablas del informe mejoradas */
 .informe-seccion table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-top: 1rem;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .informe-seccion th,
 .informe-seccion td {
-    padding: 0.8rem;
+    padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #eee;
 }
 
 .informe-seccion th {
-    background: #f8f9fa;
-    color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
 }
 
-.informe-totales {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
+.informe-seccion tr:last-child td {
+    border-bottom: none;
 }
 
-.informe-totales p {
-    margin: 0.5rem 0;
-}
-
-.total-final {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid #eee;
-    font-size: 1.2rem;
+.informe-seccion tr:hover td {
+    background-color: #f8f9fa;
 }
 
 /* Mensajes */
@@ -405,13 +450,13 @@ h1 {
     }
 
     .modal-content {
-        padding: 1rem;
+        padding: 1.5rem;
         width: 95%;
     }
     
     .informe-seccion td,
     .informe-seccion th {
-        padding: 0.5rem;
+        padding: 0.8rem;
         font-size: 0.9rem;
     }
 }
