@@ -2,7 +2,6 @@ let gastosDB;
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarApp();
-    inicializarManejadorImagenes();
 });
 
 async function inicializarApp() {
@@ -43,8 +42,7 @@ async function agregarGasto(usuario) {
     const datos = {
         fecha: document.getElementById(`fecha${index}`).value,
         categoria: document.getElementById(`categoria${index}`).value,
-        monto: document.getElementById(`gasto${index}`).value,
-        ticket: document.getElementById(`ticket${index}`).files[0] || null
+        monto: document.getElementById(`gasto${index}`).value
     };
 
     if (!validarEntradaGasto(datos)) {
@@ -95,12 +93,6 @@ function actualizarListaGastos(usuario, gastos) {
                     <span class="gasto-categoria">${gasto.categoria}</span>
                     <span class="gasto-monto">${formatearDinero(gasto.monto)}</span>
                 </div>
-                ${gasto.ticketUrl ? 
-                    `<a href="${gasto.ticketUrl}" target="_blank" class="ver-ticket">
-                        <i class="fas fa-receipt"></i>
-                    </a>` : 
-                    ''
-                }
                 <button onclick="eliminarGasto('${gasto.id}', '${usuario}')" class="btn-eliminar-gasto">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -138,8 +130,6 @@ function formatearFecha(fecha) {
 function limpiarFormularioGasto(index) {
     document.getElementById(`categoria${index}`).value = '';
     document.getElementById(`gasto${index}`).value = '';
-    document.getElementById(`ticket${index}`).value = '';
-    document.getElementById(`preview${index}`).innerHTML = '';
 }
 
 function mostrarError(mensaje) {
@@ -172,53 +162,74 @@ function mostrarMensajeExito(mensaje) {
     }, 3000);
 }
 
-function inicializarManejadorImagenes() {
-    ['1', '2'].forEach(index => {
-        const inputTicket = document.getElementById(`ticket${index}`);
-        const previewDiv = document.getElementById(`preview${index}`);
-
-        if (inputTicket && previewDiv) {
-            inputTicket.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewDiv.innerHTML = `
-                            <img src="${e.target.result}" alt="Preview">
-                            <button class="remove-image" onclick="removeImage('${index}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `;
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-    });
-}
-
-function removeImage(index) {
-    document.getElementById(`ticket${index}`).value = '';
-    document.getElementById(`preview${index}`).innerHTML = '';
-}
-
-// Funciones para los botones de informe y reinicio
 async function mostrarInforme() {
     try {
         const gastosLucas = await gastosDB.obtenerGastos('Lucas');
         const gastosPatri = await gastosDB.obtenerGastos('Patri');
         
+        // Calcular totales por categoría
+        const categorias = ['Supermercado', 'Restaurantes', 'Transporte', 'Ocio', 'Hogar', 'Otros'];
+        const totalesPorCategoria = {
+            Lucas: {},
+            Patri: {}
+        };
+
+        // Inicializar totales
+        categorias.forEach(cat => {
+            totalesPorCategoria.Lucas[cat] = 0;
+            totalesPorCategoria.Patri[cat] = 0;
+        });
+
+        // Calcular totales
+        gastosLucas.forEach(gasto => {
+            totalesPorCategoria.Lucas[gasto.categoria] += parseFloat(gasto.monto);
+        });
+        gastosPatri.forEach(gasto => {
+            totalesPorCategoria.Patri[gasto.categoria] += parseFloat(gasto.monto);
+        });
+
         const totalLucas = gastosLucas.reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
         const totalPatri = gastosPatri.reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
+
+        // Crear ventana modal
+        const modal = document.createElement('div');
+        modal.className = 'modal-informe';
         
-        const mensaje = `
-            Informe de Gastos:
-            Lucas: ${formatearDinero(totalLucas)}
-            Patri: ${formatearDinero(totalPatri)}
-            Total: ${formatearDinero(totalLucas + totalPatri)}
+        let html = `
+            <div class="modal-content">
+                <h2>Informe Detallado de Gastos</h2>
+                <div class="informe-grid">
+                    <div class="informe-seccion">
+                        <h3>Gastos por Categoría</h3>
+                        <table>
+                            <tr>
+                                <th>Categoría</th>
+                                <th>Lucas</th>
+                                <th>Patri</th>
+                            </tr>
+                            ${categorias.map(cat => `
+                                <tr>
+                                    <td>${cat}</td>
+                                    <td>${formatearDinero(totalesPorCategoria.Lucas[cat])}</td>
+                                    <td>${formatearDinero(totalesPorCategoria.Patri[cat])}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                    <div class="informe-totales">
+                        <h3>Totales</h3>
+                        <p>Lucas: <strong>${formatearDinero(totalLucas)}</strong></p>
+                        <p>Patri: <strong>${formatearDinero(totalPatri)}</strong></p>
+                        <p class="total-final">Total: <strong>${formatearDinero(totalLucas + totalPatri)}</strong></p>
+                    </div>
+                </div>
+                <button class="btn-cerrar" onclick="this.parentElement.parentElement.remove()">Cerrar</button>
+            </div>
         `;
         
-        alert(mensaje);
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
+
     } catch (error) {
         mostrarError('Error al generar el informe');
     }
